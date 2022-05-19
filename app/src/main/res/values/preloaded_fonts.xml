@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/amaranth_bold</item>
+        <item>@font/be_vietnam_semibold</item>
+        <item>@font/bellota_bold</item>
+        <item>@font/castoro</item>
+        <item>@font/eagle_lake</item>
+        <item>@font/fira_sans</item>
+        <item>@font/montserrat_thin</item>
+        <item>@font/roboto_mono</item>
+    </array>
+</resources>

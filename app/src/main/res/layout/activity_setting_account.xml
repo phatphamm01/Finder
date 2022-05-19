@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".page.setting.SettingAccountActivity">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/bg_loading"
+            android:layout_width="0dp"
+            android:layout_height="5dp"
+            android:src="@drawable/loading_bg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/loading"
+            android:layout_width="0dp"
+            android:layout_height="5dp"
+            android:src="@drawable/loading"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <FrameLayout
+            android:id="@+id/fragment_setting_account"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bg_loading" >
+
+
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/btn_comeback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="@+id/fragment_setting_account"
+            app:layout_constraintTop_toBottomOf="@+id/bg_loading"
+            app:srcCompat="@drawable/ic_comeback"
+            android:focusable="true"
+            android:clickable="true"
+            android:contentDescription="Undo" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

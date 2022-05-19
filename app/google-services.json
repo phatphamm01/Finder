@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "253341146310",
+    "firebase_url": "https://finder-75021-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "finder-75021",
+    "storage_bucket": "finder-75021.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253341146310:android:872d54d2ebbb8662e88bc7",
+        "android_client_info": {
+          "package_name": "com.summon.finder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "253341146310-985i086q53kkksv2ik1oo5nka2npl53m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.summon.finder",
+            "certificate_hash": "54049571562a2e986695900cc64e182b302d00df"
+          }
+        },
+        {
+          "client_id": "253341146310-0hg475pko4rqb06prb5bfdthc0r65dvn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdDbp9tsFS798GQDUpKZGUzj8cI3kEF8c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "253341146310-0hg475pko4rqb06prb5bfdthc0r65dvn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
