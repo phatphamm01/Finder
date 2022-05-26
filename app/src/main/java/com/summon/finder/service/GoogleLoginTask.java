@@ -123,14 +123,16 @@ public class GoogleLoginTask extends AsyncTask<String, Void, Void> {
                         userModel.setUid(uid);
                         userModel.setName(name);
 
-                        if (profile == null) {
-                            return userModel;
-                        }
-
-                        JSONArray birthdays = (JSONArray) profile.opt("birthdays");
-                        assert birthdays != null;
-                        JSONObject data = (JSONObject) birthdays.getJSONObject(1).get("date");
-                        userModel.setBirthday(data.get("day") + "/" + data.get("month") + "/" + data.get("year"));
+//                        if (profile == null) {
+//                            return userModel;
+//                        }
+//
+//                        JSONArray birthdays = (JSONArray) profile.opt("birthdays");
+//                        if (birthdays == null) {
+//                            return userModel;
+//                        }
+//                        JSONObject data = (JSONObject) birthdays.getJSONObject(1).get("date");
+//                        userModel.setBirthday(data.get("day") + "/" + data.get("month") + "/" + data.get("year"));
 
                         return userModel;
                     }

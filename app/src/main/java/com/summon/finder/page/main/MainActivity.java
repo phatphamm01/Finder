@@ -1,12 +1,17 @@
 package com.summon.finder.page.main;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -14,18 +19,55 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
+import com.summon.finder.helper.location.GpsService;
+import com.summon.finder.helper.location.IBaseGpsListener;
+import com.summon.finder.http.HTTPLocation;
+import com.summon.finder.model.ChatModel;
+import com.summon.finder.model.UserModel;
 import com.summon.finder.page.login.LoginActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, IBaseGpsListener {
+    int delayMillis = 1000;
+    private GpsService gpsService;
+    private Location currentLocation;
+    private DAOUser userDao;
+    private UserModel userModel;
+    private Handler handler;
+
+    public UserModel getUserModel() {
+        return userModel;
+    }
+
+    public void setUserModel(UserModel userModel) {
+        this.userModel = userModel;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        userDao = new DAOUser();
+        getUserCurrent();
+
+        handleLocation(this);
+        setLocationInterval();
 
         handleSetStatusWorking();
         setFragmentDefault();
@@ -36,6 +78,89 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
         });
+    }
+
+    @Override
+    protected void onStop() {
+        handler.removeCallbacksAndMessages(null);
+        super.onStop();
+    }
+
+    private void getUserCurrent() {
+        userDao.getUser().addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                userModel = new UserModel(snapshot);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void setLocationInterval() {
+        handler = new Handler(Looper.getMainLooper());
+
+        handler.postDelayed(() -> {
+            delayMillis = 60 * 1000;
+            setLocationToDB();
+        }, delayMillis);
+    }
+
+    private void setLocationToDB() {
+        userDao = new DAOUser();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://location-api-mu.vercel.app/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        HTTPLocation httpLocation = retrofit.create(HTTPLocation.class);
+
+        setLocationInterval();
+        if (currentLocation == null) {
+            return;
+        }
+
+        retrofit2.Call<HTTPLocation.LocationModel> call = httpLocation.getData(currentLocation.getLatitude(), currentLocation.getLongitude());
+        call.enqueue(new Callback<HTTPLocation.LocationModel>() {
+            @Override
+            public void onResponse(@NonNull retrofit2.Call<HTTPLocation.LocationModel> call, @NonNull Response<HTTPLocation.LocationModel> response) {
+                if (response.code() != 200) {
+                    Log.d("Location", "fail");
+                    return;
+                }
+                HTTPLocation.LocationModel data = response.body();
+
+
+                Map<String, Object> payload = new HashMap<>();
+
+                payload.put("lat", currentLocation.getLatitude());
+                payload.put("lon", currentLocation.getLongitude());
+                assert data != null;
+                payload.put("name", data.location);
+                payload.put("locationDetail", data.locationDetail);
+
+                userDao.updateField("location", payload);
+            }
+
+            @Override
+            public void onFailure(@NonNull retrofit2.Call<HTTPLocation.LocationModel> call, @NonNull Throwable t) {
+                Log.d("Location", "fail");
+            }
+        });
+    }
+
+    private void handleLocation(MainActivity mainActivity) {
+        gpsService = new GpsService(mainActivity);
+        gpsService.execute();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        gpsService.handleResquestPermissionResult(requestCode, permissions, grantResults);
     }
 
     private void addEventOnClickChangeFragment() {
@@ -68,8 +193,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         fragmentTransaction.replace(R.id.fragmentMain, fragment, fragment.getTag());
-        fragmentTransaction.addToBackStack(fragment.getTag());
         fragmentTransaction.commit();
+    }
+
+    public void setFragmentMessage(String idChat, ChatModel user) {
+        findViewById(R.id.fragmentMessage).setVisibility(View.VISIBLE);
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        ChatModel userCurrent = new ChatModel(user.idChat, userModel, user.newMessage);
+        Fragment fragment = new ChatFragment(idChat, userCurrent, user);
+
+        fragmentTransaction.replace(R.id.fragmentMessage, fragment, fragment.getTag());
+        fragmentTransaction.commit();
+    }
+
+    public void invisible(){
+        findViewById(R.id.fragmentMessage).setVisibility(View.INVISIBLE);
     }
 
     private void handleSetStatusWorking() {
@@ -79,13 +220,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         WebView webView = findViewById(R.id.webView);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.setWebViewClient(new WebViewClient());
+        assert firebaseUser != null;
         webView.loadUrl("https://server-check-active.herokuapp.com/?user=" + firebaseUser.getUid());
     }
 
     @Override
     public void onClick(View v) {
         String[] idList = new String[]{"home", "message", "match"};
-        ArrayList<String> listView = new ArrayList<String>(Arrays.asList(idList));
+        ArrayList<String> listView = new ArrayList<>(Arrays.asList(idList));
 
         listView.forEach(value -> {
             int id = getResources().getIdentifier(value + "ImageView", "id", getPackageName());
@@ -107,6 +249,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ((ImageView) findViewById(R.id.matchImageView)).setColorFilter(color);
                 break;
         }
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        currentLocation = location;
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onGpsStatusChanged(int event) {
+
     }
 
     enum FRAGMENT {

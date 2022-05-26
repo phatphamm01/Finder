@@ -1,7 +1,7 @@
 package com.summon.finder.model;
 
 import com.google.firebase.database.DataSnapshot;
-import com.summon.finder.DAO.DAOUser;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserModel {
-    private DAOUser daoUser;
     private HashMap<String, String> images;
     private List<String> tags;
     private String uid, name, gender, birthday, matchGender, school, lastOperatingTime;
@@ -47,7 +46,6 @@ public class UserModel {
         }
     }
 
-
     private static HashMap<String, String> convertArrayListToHashMap(ArrayList<String> arrayList) {
         HashMap<String, String> hashMap = new HashMap<>();
 
@@ -61,8 +59,11 @@ public class UserModel {
         return hashMap;
     }
 
+    public String firstImage() {
+        return images.values().stream().findFirst().get();
+    }
+
     private void initData() {
-        daoUser = new DAOUser();
         images = new HashMap<String, String>();
         tags = new ArrayList<>();
         uid = "";
@@ -72,6 +73,12 @@ public class UserModel {
         matchGender = "";
         school = "";
         active = false;
+    }
+
+    public boolean equals(UserModel object) {
+        String objectString1 = new Gson().toJson(this);
+        String objectString2 = new Gson().toJson(object);
+        return objectString1.equals(objectString2);
     }
 
     public String getLastOperatingTime() {
@@ -120,7 +127,6 @@ public class UserModel {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
-        daoUser.updateField("tags", tags);
     }
 
     public String getUid() {
@@ -129,7 +135,6 @@ public class UserModel {
 
     public void setUid(String uid) {
         this.uid = uid;
-        daoUser.updateField("uid", uid);
     }
 
     public String getName() {
@@ -138,7 +143,6 @@ public class UserModel {
 
     public void setName(String name) {
         this.name = name;
-        daoUser.updateField("name", name);
     }
 
     public String getGender() {
@@ -147,7 +151,6 @@ public class UserModel {
 
     public void setGender(String gender) {
         this.gender = gender;
-        daoUser.updateField("gender", gender);
     }
 
     public String getBirthday() {
@@ -156,7 +159,6 @@ public class UserModel {
 
     public void setBirthday(String birthday) {
         this.birthday = birthday;
-        daoUser.updateField("birthday", birthday);
     }
 
     public String getMatchGender() {
@@ -165,7 +167,6 @@ public class UserModel {
 
     public void setMatchGender(String matchGender) {
         this.matchGender = matchGender;
-        daoUser.updateField("matchGender", matchGender);
     }
 
     public String getSchool() {
@@ -174,7 +175,6 @@ public class UserModel {
 
     public void setSchool(String school) {
         this.school = school;
-        daoUser.updateField("school", school);
     }
 
     public Boolean getActive() {
@@ -183,7 +183,6 @@ public class UserModel {
 
     public void setActive(Boolean active) {
         this.active = active;
-        daoUser.update(this);
     }
 
     public Boolean addTagListSelected(String s) {
@@ -195,12 +194,11 @@ public class UserModel {
 
         if (result.isPresent()) {
             tags.remove(s);
-            daoUser.updateField("tags", tags);
+
             return false;
         }
 
         tags.add(s);
-        daoUser.updateField("tags", tags);
         return true;
     }
 

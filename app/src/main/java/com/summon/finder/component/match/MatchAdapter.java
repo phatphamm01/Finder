@@ -6,32 +6,35 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
 import com.summon.finder.R;
-import com.summon.finder.databinding.ViewMatchBinding;
-import com.summon.finder.model.UserModel;
+import com.summon.finder.model.ChatModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class MatchAdapter extends RecyclerView.Adapter<ViewHolder> {
 
-    private List<UserModel> userModelList = new ArrayList<>();
+    private List<ChatModel> dataModel = new ArrayList<>();
 
-    public List<UserModel> getUserModelList() {
-        return userModelList;
+
+    public List<ChatModel> getDataModel() {
+        return dataModel;
     }
 
-    public void setUserModelList(List<UserModel> userModelList) {
-        this.userModelList = userModelList;
+    public void setDataModel(List<ChatModel> dataModel) {
+        this.dataModel = dataModel;
     }
 
-    public void addUserModel(UserModel userModel) {
-        this.userModelList.add(userModel);
+    public void addData(ChatModel dataModel) {
+        this.dataModel.add(dataModel);
     }
 
     @NonNull
@@ -39,17 +42,17 @@ public class MatchAdapter extends RecyclerView.Adapter<ViewHolder> {
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View view = inflater.inflate(R.layout.view_match, parent, false);
-        return new ViewHolder(view, ViewMatchBinding.inflate(inflater));
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.setData(userModelList.get(position));
+        holder.setData(dataModel.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return userModelList.size();
+        return dataModel.size();
     }
 
     @Override
@@ -58,27 +61,36 @@ public class MatchAdapter extends RecyclerView.Adapter<ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ViewMatchBinding binding;
         ImageView imageView;
+        TextView name, school;
+        ConstraintLayout blurView;
 
-        public ViewHolder(@NonNull View itemView, ViewMatchBinding binding) {
+
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             imageView = itemView.findViewById(R.id.match_imageView);
-            this.binding = binding;
+            name = itemView.findViewById(R.id.match_textView_name);
+            school = itemView.findViewById(R.id.match_textView_school);
+            blurView = itemView.findViewById(R.id.blur);
         }
 
-        public void setData(UserModel userModel) {
-            if (userModel.getImages().size() != 0) {
-                String image = userModel.getImages().values().stream().findFirst().get();
+
+        public void setData(ChatModel userModel) {
+            if (userModel.idChat != null) {
+                blurView.setVisibility(View.INVISIBLE);
+            }
+
+            if (userModel.userModel.getImages().size() != 0) {
+                String image = userModel.userModel.getImages().values().stream().findFirst().get();
                 Picasso.get()
-                        .load("https://giaitri.vn/wp-content/uploads/2019/11/hot-girl-Nam-%C4%90%E1%BB%8Bnh.jpg")
+                        .load(image)
                         .into(imageView);
             }
 
 
-            binding.matchTextViewName.setText(userModel.getName());
-            binding.matchTextViewSchool.setText(userModel.getSchool());
+            name.setText(userModel.userModel.getName());
+            school.setText(userModel.userModel.getSchool());
         }
     }
 }

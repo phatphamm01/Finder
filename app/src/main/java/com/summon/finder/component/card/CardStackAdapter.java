@@ -125,8 +125,6 @@ public class CardStackAdapter extends RecyclerView.Adapter<CardStackAdapter.View
                     image.setOnTouchListener(new View.OnTouchListener() {
                         @Override
                         public boolean onTouch(View v, MotionEvent event) {
-
-                            Log.d("TEE", String.valueOf(name.getText()));
                             if (event.getAction() == MotionEvent.ACTION_MOVE) {
                                 return true;
                             }

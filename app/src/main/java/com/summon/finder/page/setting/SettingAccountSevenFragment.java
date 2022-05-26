@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.ritesh.ratiolayout.RatioRelativeLayout;
 import com.squareup.picasso.Picasso;
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.page.main.MainActivity;
 import com.summon.finder.service.UpdateImageTask;
@@ -177,6 +178,7 @@ public class SettingAccountSevenFragment extends Fragment {
                     @Override
                     public void onComplete() {
                         settingAccountActivity.userModel.setActive(true);
+                        new DAOUser().update(settingAccountActivity.userModel);
 
                         Intent intent = new Intent(settingAccountActivity, MainActivity.class);
                         startActivity(intent);

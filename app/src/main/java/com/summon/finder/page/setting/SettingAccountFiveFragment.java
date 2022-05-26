@@ -13,6 +13,7 @@ import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 
 public class SettingAccountFiveFragment extends Fragment {
@@ -21,7 +22,6 @@ public class SettingAccountFiveFragment extends Fragment {
 
     Button button;
     EditText editText;
-
 
 
     @Nullable
@@ -111,5 +111,6 @@ public class SettingAccountFiveFragment extends Fragment {
     private void setSchoolModel() {
         assert settingAccountActivity != null;
         settingAccountActivity.userModel.setSchool(String.valueOf(editText.getText()));
+        new DAOUser().updateField("school", String.valueOf(editText.getText()));
     }
 }

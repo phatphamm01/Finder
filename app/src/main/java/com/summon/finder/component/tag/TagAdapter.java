@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.page.setting.SettingAccountActivity;
 import com.summon.finder.page.setting.SettingAccountSixFragment;
@@ -93,6 +94,7 @@ public class TagAdapter extends RecyclerView.Adapter<TagAdapter.ViewHolder> {
                 @Override
                 public void onClick(View v) {
                     Boolean isCheck = mContext.userModel.addTagListSelected(s);
+                    new DAOUser().updateField("tags", mContext.userModel.getTags());
 
                     if (isCheck) {
                         setStyle();

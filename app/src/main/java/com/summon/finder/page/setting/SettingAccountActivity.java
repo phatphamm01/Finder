@@ -111,7 +111,6 @@ public class SettingAccountActivity extends AppCompatActivity implements View.On
         }
 
         fragmentTransaction.replace(R.id.fragment_setting_account, fragment, fragment.getTag());
-        fragmentTransaction.addToBackStack(fragment.getTag());
         fragmentTransaction.commit();
     }
 

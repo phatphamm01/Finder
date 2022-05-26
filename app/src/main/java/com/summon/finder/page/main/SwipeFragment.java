@@ -1,26 +1,30 @@
 package com.summon.finder.page.main;
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.component.card.CardStackAdapter;
 import com.summon.finder.model.UserModel;
@@ -29,6 +33,7 @@ import com.yuyakaido.android.cardstackview.CardStackListener;
 import com.yuyakaido.android.cardstackview.CardStackView;
 import com.yuyakaido.android.cardstackview.Direction;
 import com.yuyakaido.android.cardstackview.Duration;
+import com.yuyakaido.android.cardstackview.RewindAnimationSetting;
 import com.yuyakaido.android.cardstackview.StackFrom;
 import com.yuyakaido.android.cardstackview.SwipeAnimationSetting;
 import com.yuyakaido.android.cardstackview.SwipeableMethod;
@@ -36,8 +41,11 @@ import com.yuyakaido.android.cardstackview.SwipeableMethod;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.IntStream;
+
 
 public class SwipeFragment extends Fragment {
     private static final String TAG = "MainActivity";
@@ -49,6 +57,9 @@ public class SwipeFragment extends Fragment {
     private CardStackAdapter cardStackAdapter;
 
     private DatabaseReference usersDb;
+    private DAOUser daoUser;
+
+    private List<String> isNope = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -56,11 +67,39 @@ public class SwipeFragment extends Fragment {
         view = inflater.inflate(R.layout.fragment_swipe, container, false);
         mainActivity = (MainActivity) getActivity();
 
+        setColorActionBtn(false);
+
         usersDb = FirebaseDatabase.getInstance().getReference().child("user");
+        daoUser = new DAOUser();
 
         handleCardStack();
-        getOppositeSexUser();
+
+        handleGetDataCard();
+
+        handleTimeOutLoadData();
+
         return view;
+    }
+
+    private void handleTimeOutLoadData() {
+        new android.os.Handler(Looper.getMainLooper()).postDelayed(
+                new Runnable() {
+                    public void run() {
+                        lazyLoading();
+                    }
+                },
+                3000);
+    }
+
+    private void handleGetDataCard() {
+        daoUser.getUserSnapshot().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+            @Override
+            public void onSuccess(DataSnapshot dataSnapshot) {
+                UserModel user = new UserModel(dataSnapshot);
+                String matchGender = user.getMatchGender();
+                getOppositeSexUser(matchGender);
+            }
+        });
     }
 
 
@@ -75,14 +114,56 @@ public class SwipeFragment extends Fragment {
 
             @Override
             public void onCardSwiped(Direction direction) {
+                int index = cardStackLayoutManager.getTopPosition() - 1;
+
+                UserModel user = cardStackAdapter.getUserModel(index);
+
+                handleAddDataWhenSwipe(direction, user);
 
 
                 //handle last item
                 if (cardStackLayoutManager.getTopPosition() == cardStackLayoutManager.getItemCount()) {
-                    view.findViewById(R.id.notFound).setVisibility(View.VISIBLE);
-                    view.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+                    lazyLoading();
 
                     setColorActionBtn(false);
+                }
+            }
+
+            private void handleAddDataWhenSwipe(Direction direction, UserModel user) {
+                if (direction == Direction.Left) {
+                    isNope.add(user.getUid());
+                    daoUser.getConnections().child("nope").child(user.getUid()).setValue("");
+                }
+
+                if (direction == Direction.Right) {
+                    isNope = new ArrayList<>();
+                    daoUser.getConnections().child("yep").child(user.getUid()).setValue("");
+
+                    String uidCurrent = mainActivity.getUserModel().getUid();
+                    String uidUser = user.getUid();
+
+                    FirebaseDatabase db = FirebaseDatabase.getInstance();
+                    db.getReference("user")
+                            .child(uidUser)
+                            .child("match")
+                            .child(mainActivity.getUserModel().getUid()).setValue("");
+
+                    db.getReference("user")
+                            .child(uidCurrent)
+                            .child("match").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                        @Override
+                        public void onSuccess(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.child(user.getUid()).getValue() != null) {
+                                Toast.makeText(mainActivity, "Bạn có một kết nối mới", Toast.LENGTH_LONG).show();
+
+                                String uuid = UUID.randomUUID().toString();
+                                db.getReference("chats").child(uuid).setValue("");
+
+                                usersDb.child(uidUser).child("match").child(uidCurrent).child("chatId").setValue(uuid);
+                                usersDb.child(uidCurrent).child("match").child(uidUser).child("chatId").setValue(uuid);
+                            }
+                        }
+                    });
                 }
             }
 
@@ -93,24 +174,24 @@ public class SwipeFragment extends Fragment {
 
             @Override
             public void onCardCanceled() {
-                Log.d(TAG, "onCardRewound: " + cardStackLayoutManager.getTopPosition());
+                Log.d(TAG, "onCardCanceled: " + cardStackLayoutManager.getTopPosition());
             }
 
             @Override
             public void onCardAppeared(View view, int position) {
-                TextView tv = view.findViewById(R.id.item_name);
-                Log.d(TAG, "onCardAppeared: " + position + ", name: " + tv.getText());
+                Log.d(TAG, "onCardAppeared: " + cardStackLayoutManager.getTopPosition());
+
             }
 
             @Override
             public void onCardDisappeared(View view, int position) {
-                TextView tv = view.findViewById(R.id.item_name);
-                Log.d(TAG, "onCardAppeared: " + position + ", name: " + tv.getText());
+                Log.d(TAG, "onCardDisappeared: " + cardStackLayoutManager.getTopPosition());
             }
         });
 
 
         setEventHandleSwipe(cardStackView);
+        setEventHandleRewind(cardStackView);
 
         cardStackLayoutManager.setStackFrom(StackFrom.None);
         cardStackLayoutManager.setVisibleCount(3);
@@ -129,9 +210,14 @@ public class SwipeFragment extends Fragment {
         cardStackView.setItemAnimator(new DefaultItemAnimator());
     }
 
+    private void lazyLoading() {
+        view.findViewById(R.id.notFound).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+    }
+
 
     private void setColorActionBtn(Boolean status) {
-        int colorBtnUnActiv = getResources().getColor(R.color.btn_unactive);
+        int colorBtnUnActive = mainActivity.getResources().getColor(R.color.btn_unactive);
         MaterialCardView cancelCardView = view.findViewById(R.id.cancelCardView);
         MaterialCardView heartCardView = view.findViewById(R.id.heartCardView);
 
@@ -144,21 +230,42 @@ public class SwipeFragment extends Fragment {
         heartCardView.setFocusable(status);
 
         if (!status) {
-            cancelCardView.setStrokeColor(colorBtnUnActiv);
-            heartCardView.setStrokeColor(colorBtnUnActiv);
+            cancelCardView.setStrokeColor(colorBtnUnActive);
+            heartCardView.setStrokeColor(colorBtnUnActive);
 
-            cancelImageView.setColorFilter(colorBtnUnActiv);
-            heartImageView.setColorFilter(colorBtnUnActiv);
+            cancelImageView.setColorFilter(colorBtnUnActive);
+            heartImageView.setColorFilter(colorBtnUnActive);
 
             return;
         }
 
 
-        cancelCardView.setStrokeColor(getResources().getColor(R.color.cancel_active));
-        heartCardView.setStrokeColor(getResources().getColor(R.color.heart_active));
+        cancelCardView.setStrokeColor(mainActivity.getResources().getColor(R.color.cancel_active));
+        heartCardView.setStrokeColor(mainActivity.getResources().getColor(R.color.heart_active));
 
         cancelImageView.setColorFilter(null);
         heartImageView.setColorFilter(null);
+    }
+
+    private void setEventHandleRewind(CardStackView cardStackView) {
+        view.findViewById(R.id.undo).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isNope.size() == 0) return;
+
+                RewindAnimationSetting setting = new RewindAnimationSetting.Builder()
+                        .setDirection(Direction.Bottom)
+                        .setDuration(Duration.Normal.duration)
+                        .setInterpolator(new DecelerateInterpolator())
+                        .build();
+                cardStackLayoutManager.setRewindAnimationSetting(setting);
+                cardStackView.rewind();
+
+
+                String id = isNope.remove(isNope.size() - 1);
+                daoUser.getConnections().child("nope").child(id).removeValue();
+            }
+        });
     }
 
     private void setEventHandleSwipe(CardStackView cardStackView) {
@@ -192,25 +299,49 @@ public class SwipeFragment extends Fragment {
     }
 
 
-    public void getOppositeSexUser() {
+    public void getOppositeSexUser(String oppositeUserSex) {
         usersDb.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                UserModel userModel = new UserModel(snapshot);
+            public void onChildAdded(@NonNull DataSnapshot snapshotUser, @Nullable String previousChildName) {
+                checkData(snapshotUser, oppositeUserSex, (snapshot) -> {
 
-                ArrayList<UserModel> newUserModelList = new ArrayList<>(cardStackAdapter.getUserModelList());
+                    UserModel userModel = new UserModel(snapshotUser);
 
-                newUserModelList.add(userModel);
+                    ArrayList<UserModel> newUserModelList = new ArrayList<>(cardStackAdapter.getUserModelList());
 
-                cardStackAdapter.setUserModelList(newUserModelList);
-                cardStackAdapter.notifyDataSetChanged();
 
-                setColorActionBtn(true);
+                    newUserModelList.add(userModel);
+
+                    cardStackAdapter.setUserModelList(newUserModelList);
+                    cardStackAdapter.notifyDataSetChanged();
+
+                    setColorActionBtn(true);
+                });
             }
 
             @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            public void onChildChanged(@NonNull DataSnapshot snapshotUser, @Nullable String previousChildName) {
+                checkData(snapshotUser, oppositeUserSex, (snapshot) -> {
+                    UserModel userModel = new UserModel(snapshotUser);
 
+                    ArrayList<UserModel> newUserModelList = new ArrayList<>(cardStackAdapter.getUserModelList());
+                    Optional<UserModel> userSame = newUserModelList.stream().filter((user) -> user.getUid().contains(userModel.getUid())).findFirst();
+
+                    if (userSame.isPresent()) {
+                        if (userModel.equals(userSame.get())) {
+                            return;
+                        }
+
+                        newUserModelList.removeIf(user -> user.getUid().contains(userModel.getUid()));
+                    }
+
+
+                    newUserModelList.add(userModel);
+                    cardStackAdapter.setUserModelList(newUserModelList);
+                    cardStackAdapter.notifyDataSetChanged();
+
+                    setColorActionBtn(true);
+                });
             }
 
             @Override
@@ -228,7 +359,25 @@ public class SwipeFragment extends Fragment {
 
             }
         });
+    }
 
+    private void checkData(@NonNull DataSnapshot snapshotUser, String oppositeUserSex, IHandle handle) {
+        if (snapshotUser.exists() && snapshotUser.child("gender").getValue() != null
+                && snapshotUser.child("active").getValue(Boolean.class)) {
+            String uid = snapshotUser.getKey();
+            String gender = snapshotUser.child("gender").getValue().toString();
+
+            if (gender.equals(oppositeUserSex)) {
+                daoUser.getConnections().get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                    @Override
+                    public void onSuccess(DataSnapshot snapshotConnectCurrent) {
+                        if (!snapshotConnectCurrent.child("nope").hasChild(uid) && !snapshotConnectCurrent.child("yep").hasChild(uid)) {
+                            handle.handleCb(snapshotUser);
+                        }
+                    }
+                });
+            }
+        }
     }
 
     public List<Integer> mixArrayString(List<Integer> arr) {
@@ -250,4 +399,11 @@ public class SwipeFragment extends Fragment {
 
         return Arrays.asList(arrMixed);
     }
+
+
+    public interface IHandle {
+        void handleCb(DataSnapshot snapshotUser);
+    }
+
+
 }

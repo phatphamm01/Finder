@@ -8,7 +8,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.summon.finder.model.UserModel;
 
-public class DAOUser {
+import java.util.HashMap;
+
+public class   DAOUser {
     private final DatabaseReference databaseReference;
     private FirebaseUser firebaseUser;
 
@@ -18,9 +20,12 @@ public class DAOUser {
         databaseReference = db.getReference("user").child(firebaseUser.getUid());
     }
 
-
-    public Task<DataSnapshot> get(String uid) {
+    public Task<DataSnapshot> getUserSnapshot() {
         return databaseReference.get();
+    }
+
+    public DatabaseReference getUser() {
+       return databaseReference;
     }
 
     public Task<Void> addUser(UserModel userModel) {
@@ -33,6 +38,10 @@ public class DAOUser {
 
     public Task<Void> updateField(String field,Object data) {
         return databaseReference.child(field).setValue(data);
+    }
+
+    public DatabaseReference getConnections() {
+        return databaseReference.child("connections");
     }
 }
 

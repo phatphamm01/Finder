@@ -13,6 +13,7 @@ import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 
 public class SettingAccountOneFragment extends Fragment {
@@ -43,7 +44,7 @@ public class SettingAccountOneFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        setSchoolToView();
+        setNameToView();
 
         if (settingAccountActivity.userModel.getName().equals("")) {
             offModeClick(button);
@@ -53,7 +54,7 @@ public class SettingAccountOneFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        setSchoolModel();
+        setNameModel();
     }
 
     private void addEventToEditText(Button button, EditText editText) {
@@ -103,13 +104,14 @@ public class SettingAccountOneFragment extends Fragment {
         button.setBackgroundColor(getResources().getColor(R.color.neural_80));
     }
 
-    private void setSchoolToView() {
+    private void setNameToView() {
         assert settingAccountActivity != null;
         editText.setText(settingAccountActivity.userModel.getName());
     }
 
-    private void setSchoolModel() {
+    private void setNameModel() {
         assert settingAccountActivity != null;
         settingAccountActivity.userModel.setName(String.valueOf(editText.getText()));
+        new DAOUser().updateField("name",String.valueOf(editText.getText()));
     }
 }

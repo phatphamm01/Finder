@@ -10,6 +10,7 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 
 import java.util.ArrayList;
@@ -119,6 +120,7 @@ public class SettingAccountFourFragment extends Fragment implements View.OnClick
 
     private void handleClick(Button button) {
         settingAccountActivity.userModel.setMatchGender(button.getText().toString());
+        new DAOUser().updateField("matchGender",button.getText().toString());
         addStyle(button);
     }
 

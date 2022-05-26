@@ -30,10 +30,9 @@ public class GetUserTask {
             return;
         }
 
-        String uid = firebaseUser.getUid();
         DAOUser daoUser = new DAOUser();
 
-        daoUser.get(uid).addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+        daoUser.getUserSnapshot().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
 

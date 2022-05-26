@@ -24,20 +24,20 @@ public class ChangeIntent {
 
            if(userModel == null){
                Intent intentLogin = new Intent(activity, LoginActivity.class);
-               intentLogin.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+               intentLogin.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                activity.startActivity(intentLogin);
                return;
            }
 
            if(!userModel.getActive()){
                Intent intentSetting = new Intent(activity, SettingAccountActivity.class);
-               intentSetting.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+               intentSetting.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                activity.startActivity(intentSetting);
                return;
            }
 
             Intent intentSetting = new Intent(activity, activityClass);
-            intentSetting.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intentSetting.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             activity.startActivity(intentSetting);
         }).execute();
     }
