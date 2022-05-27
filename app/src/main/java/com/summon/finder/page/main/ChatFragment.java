@@ -64,12 +64,12 @@ public class ChatFragment extends Fragment {
         editText = view.findViewById(R.id.messageText);
         btnSend = view.findViewById(R.id.btnSend);
 
+        handleInitAdapter();
+        setDataChat();
+
         setEventReturn();
         setDataUserChat();
         setEventSendMessage();
-
-        handleInitAdapter();
-        setDataChat();
 
         return view;
     }
@@ -115,7 +115,7 @@ public class ChatFragment extends Fragment {
         view.findViewById(R.id.undo).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.invisible();
+                mainActivity.invisibleFragmentMessage();
             }
         });
     }

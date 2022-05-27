@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void setFragmentMessage(String idChat, ChatModel user) {
-        findViewById(R.id.fragmentMessage).setVisibility(View.VISIBLE);
+        invisibleFragmentMain();
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -209,8 +209,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fragmentTransaction.commit();
     }
 
-    public void invisible(){
+    public void invisibleFragmentMessage() {
+        findViewById(R.id.fragmentMain).setVisibility(View.VISIBLE);
         findViewById(R.id.fragmentMessage).setVisibility(View.INVISIBLE);
+    }
+
+    public void invisibleFragmentMain() {
+        findViewById(R.id.fragmentMessage).setVisibility(View.VISIBLE);
+        findViewById(R.id.fragmentMain).setVisibility(View.INVISIBLE);
     }
 
     private void handleSetStatusWorking() {

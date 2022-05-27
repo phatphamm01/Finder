@@ -25,7 +25,6 @@ import com.summon.finder.page.setting.SettingAccountActivity;
 import com.summon.finder.utils.ChangeIntent;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
