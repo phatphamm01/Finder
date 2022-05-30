@@ -1,0 +1,23 @@
+<resources>
+    <declare-styleable name="TagView">
+        <attr name="exampleString" format="string" />
+        <attr name="exampleDimension" format="dimension" />
+        <attr name="exampleColor" format="color" />
+        <attr name="exampleDrawable" format="color|reference" />
+    </declare-styleable>
+    <declare-styleable name="ContinuousSlide">
+        <attr name="titleContinuousSlide" format="string"/>
+        <attr name="value" format="integer"/>
+        <attr name="prefix" format="string"/>
+        <attr name="minContinuousSlide" format="integer"/>
+        <attr name="maxContinuousSlide" format="integer"/>
+    </declare-styleable>
+    <declare-styleable name="RangeSlide">
+        <attr name="titleRangeSlide" format="string"/>
+        <attr name="minValue" format="integer"/>
+        <attr name="maxValue" format="integer"/>
+        <attr name="prefixRangeSlide" format="string"/>
+        <attr name="minRangeSlide" format="integer"/>
+        <attr name="maxRangeSlide" format="integer"/>
+    </declare-styleable>
+</resources>

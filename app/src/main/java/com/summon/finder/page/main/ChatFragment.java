@@ -115,7 +115,7 @@ public class ChatFragment extends Fragment {
         view.findViewById(R.id.undo).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.invisibleFragmentMessage();
+                mainActivity.visibleFragmentMain();
             }
         });
     }

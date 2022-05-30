@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.helper.location.GpsService;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DAOUser userDao;
     private UserModel userModel;
     private Handler handler;
+    private ImageView userImage;
 
     public UserModel getUserModel() {
         return userModel;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        userImage =(ImageView) findViewById(R.id.userImage);
 
         userDao = new DAOUser();
         getUserCurrent();
@@ -74,9 +77,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addEventOnClickChangeFragment();
 
 
-        findViewById(R.id.logo).setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+
+
+        userImage.setOnClickListener(v -> {
+            setFragmentUser(FragmentUser.PROFILE);
         });
     }
 
@@ -91,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 userModel = new UserModel(snapshot);
+
+                Picasso.get().load(userModel.firstImage()).into(userImage);
             }
 
             @Override
@@ -196,8 +202,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fragmentTransaction.commit();
     }
 
+    public void visibleFragmentMessage() {
+        findViewById(R.id.fragmentMain).setVisibility(View.INVISIBLE);
+        findViewById(R.id.fragmentMessage).setVisibility(View.VISIBLE);
+        findViewById(R.id.fragmentUser).setVisibility(View.INVISIBLE);
+    }
+
+    public void visibleFragmentMain() {
+        findViewById(R.id.fragmentMain).setVisibility(View.VISIBLE);
+        findViewById(R.id.fragmentMessage).setVisibility(View.INVISIBLE);
+        findViewById(R.id.fragmentUser).setVisibility(View.INVISIBLE);
+    }
+
+    public void visibleFragmentUser() {
+        findViewById(R.id.fragmentMain).setVisibility(View.INVISIBLE);
+        findViewById(R.id.fragmentMessage).setVisibility(View.INVISIBLE);
+        findViewById(R.id.fragmentUser).setVisibility(View.VISIBLE);
+    }
+
     public void setFragmentMessage(String idChat, ChatModel user) {
-        invisibleFragmentMain();
+        visibleFragmentMessage();
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -209,14 +233,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fragmentTransaction.commit();
     }
 
-    public void invisibleFragmentMessage() {
-        findViewById(R.id.fragmentMain).setVisibility(View.VISIBLE);
-        findViewById(R.id.fragmentMessage).setVisibility(View.INVISIBLE);
+
+    public enum FragmentUser{
+        PROFILE,
+        EDIT_PROFILE,
+        SETTING,
     }
 
-    public void invisibleFragmentMain() {
-        findViewById(R.id.fragmentMessage).setVisibility(View.VISIBLE);
-        findViewById(R.id.fragmentMain).setVisibility(View.INVISIBLE);
+    public void setFragmentUser(FragmentUser fragmentUser) {
+        visibleFragmentUser();
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        Fragment fragment = new ProfileFragment();
+
+        switch (fragmentUser){
+            case PROFILE:
+                fragment = new ProfileFragment();
+                break;
+            case EDIT_PROFILE:
+                fragment = new EditProfileFragment();
+                break;
+            case SETTING:
+                fragment = new SettingFragment();
+                break;
+        }
+
+        fragmentTransaction.replace(R.id.fragmentUser, fragment, fragment.getTag());
+        fragmentTransaction.commit();
     }
 
     private void handleSetStatusWorking() {

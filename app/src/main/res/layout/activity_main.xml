@@ -69,7 +69,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
-                android:id="@+id/roundedImageView"
+                android:id="@+id/userImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/white"
@@ -162,6 +162,19 @@
 
     <FrameLayout
         android:id="@+id/fragmentMessage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#fff"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/constraintLayout2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/constraintLayout" />
+
+    <FrameLayout
+        android:id="@+id/fragmentUser"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#fff"
