@@ -77,20 +77,19 @@ public class MatchAdapter extends RecyclerView.Adapter<ViewHolder> {
 
 
         public void setData(ChatModel userModel) {
-            if (userModel.idChat != null) {
+            if (userModel.getIdChat() != null) {
                 blurView.setVisibility(View.INVISIBLE);
             }
 
-            if (userModel.userModel.getImages().size() != 0) {
-                String image = userModel.userModel.getImages().values().stream().findFirst().get();
+            if (userModel.getUserModel().getImages().size() != 0) {
+                String image = userModel.getUserModel().firstImage();
                 Picasso.get()
                         .load(image)
                         .into(imageView);
             }
 
-
-            name.setText(userModel.userModel.getName());
-            school.setText(userModel.userModel.getSchool());
+            name.setText(userModel.getUserModel().getName());
+            school.setText(userModel.getUserModel().getSchool());
         }
     }
 }

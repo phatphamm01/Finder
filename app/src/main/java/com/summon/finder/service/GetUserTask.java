@@ -1,12 +1,7 @@
 package com.summon.finder.service;
 
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
 import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.model.UserModel;
 
@@ -32,21 +27,16 @@ public class GetUserTask {
 
         DAOUser daoUser = new DAOUser();
 
-        daoUser.getUserSnapshot().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
+        daoUser.getUserSnapshot(snapshot -> {
+            Object objectValue = snapshot.getValue();
 
-                DataSnapshot dataSnapshot = task.getResult();
-                Object objectValue = dataSnapshot.getValue();
-
-                if (objectValue == null) {
-                    callback.handle(null);
-                    return;
-                }
-
-                UserModel userModel = new UserModel(dataSnapshot);
-                callback.handle(userModel);
+            if (objectValue == null) {
+                callback.handle(null);
+                return;
             }
+
+            UserModel userModel = new UserModel(snapshot);
+            callback.handle(userModel);
         });
     }
 

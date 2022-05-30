@@ -46,6 +46,9 @@ public class UserModel {
         }
     }
 
+
+
+
     private static HashMap<String, String> convertArrayListToHashMap(ArrayList<String> arrayList) {
         HashMap<String, String> hashMap = new HashMap<>();
 

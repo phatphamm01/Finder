@@ -43,7 +43,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 
@@ -57,7 +56,7 @@ public class SwipeFragment extends Fragment {
     private CardStackAdapter cardStackAdapter;
 
     private DatabaseReference usersDb;
-    private DAOUser daoUser;
+    private final DAOUser daoUser = new DAOUser();
 
     private List<String> isNope = new ArrayList<>();
 
@@ -70,7 +69,6 @@ public class SwipeFragment extends Fragment {
         setColorActionBtn(false);
 
         usersDb = FirebaseDatabase.getInstance().getReference().child("user");
-        daoUser = new DAOUser();
 
         handleCardStack();
 
@@ -92,13 +90,10 @@ public class SwipeFragment extends Fragment {
     }
 
     private void handleGetDataCard() {
-        daoUser.getUserSnapshot().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
-            @Override
-            public void onSuccess(DataSnapshot dataSnapshot) {
-                UserModel user = new UserModel(dataSnapshot);
-                String matchGender = user.getMatchGender();
-                getOppositeSexUser(matchGender);
-            }
+        daoUser.getUserSnapshot(snapshot -> {
+            UserModel user = new UserModel(snapshot);
+            String matchGender = user.getMatchGender();
+            getOppositeSexUser(matchGender);
         });
     }
 
@@ -130,42 +125,24 @@ public class SwipeFragment extends Fragment {
             }
 
             private void handleAddDataWhenSwipe(Direction direction, UserModel user) {
+                String uidUser = user.getUid();
+
                 if (direction == Direction.Left) {
                     isNope.add(user.getUid());
-                    daoUser.getConnections().child("nope").child(user.getUid()).setValue("");
+                    daoUser.unMatch(uidUser);
                 }
 
                 if (direction == Direction.Right) {
                     isNope = new ArrayList<>();
-                    daoUser.getConnections().child("yep").child(user.getUid()).setValue("");
+                    daoUser.match(uidUser);
 
                     String uidCurrent = mainActivity.getUserModel().getUid();
-                    String uidUser = user.getUid();
-
-                    FirebaseDatabase db = FirebaseDatabase.getInstance();
-                    db.getReference("user")
-                            .child(uidUser)
-                            .child("match")
-                            .child(mainActivity.getUserModel().getUid()).setValue("");
-
-                    db.getReference("user")
-                            .child(uidCurrent)
-                            .child("match").get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
-                        @Override
-                        public void onSuccess(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.child(user.getUid()).getValue() != null) {
-                                Toast.makeText(mainActivity, "Bạn có một kết nối mới", Toast.LENGTH_LONG).show();
-
-                                String uuid = UUID.randomUUID().toString();
-                                db.getReference("chats").child(uuid).setValue("");
-
-                                usersDb.child(uidUser).child("match").child(uidCurrent).child("chatId").setValue(uuid);
-                                usersDb.child(uidCurrent).child("match").child(uidUser).child("chatId").setValue(uuid);
-                            }
-                        }
+                    daoUser.handleLiked(user, uidUser, uidCurrent, () -> {
+                        Toast.makeText(mainActivity, "Bạn có một kết nối mới", Toast.LENGTH_LONG).show();
                     });
                 }
             }
+
 
             @Override
             public void onCardRewound() {

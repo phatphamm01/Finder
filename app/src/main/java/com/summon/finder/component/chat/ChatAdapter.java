@@ -3,16 +3,15 @@ package com.summon.finder.component.chat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.annotations.SerializedName;
 import com.summon.finder.R;
 import com.summon.finder.model.ChatModel;
+import com.summon.finder.model.MessageModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +50,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         status = Status.LEFT;
         view = inflater.inflate(R.layout.view_chat_left, parent, false);
 
-        if (chat.createdByUser.equals(userCurrent.userModel.getUid())) {
+        if (chat.getCreatedByUser().equals(userCurrent.getUserModel().getUid())) {
             status = Status.RIGHT;
             view = inflater.inflate(R.layout.view_chat_right, parent, false);
         }
@@ -90,22 +89,11 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             text = itemView.findViewById(R.id.chat_text);
 
-
             this.status = status;
         }
 
         public void setData(MessageModel chatModel, ChatModel userCurrent, ChatModel user) {
-            text.setText(chatModel.text);
+            text.setText(chatModel.getMessage());
         }
     }
-
-    public class MessageModel {
-        @SerializedName("createdByUser")
-        public String createdByUser;
-
-        @SerializedName("text")
-        public String text;
-    }
-
-
 }

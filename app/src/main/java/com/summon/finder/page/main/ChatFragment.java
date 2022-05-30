@@ -11,32 +11,27 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.squareup.picasso.Picasso;
+import com.summon.finder.DAO.DAOChat;
+import com.summon.finder.DAO.DAOMessage;
 import com.summon.finder.R;
 import com.summon.finder.component.chat.ChatAdapter;
 import com.summon.finder.model.ChatModel;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.summon.finder.model.MessageModel;
 
 
 public class ChatFragment extends Fragment {
     private final String idChat;
     private final ChatModel userCurrent;
     private final ChatModel user;
+    private final DAOChat daoChat = new DAOChat();
+    private final DAOMessage daoMessage = new DAOMessage();
     private View view;
     private MainActivity mainActivity;
     private DatabaseReference chatDb;
@@ -63,6 +58,7 @@ public class ChatFragment extends Fragment {
         chatDb = FirebaseDatabase.getInstance().getReference("chats");
         editText = view.findViewById(R.id.messageText);
         btnSend = view.findViewById(R.id.btnSend);
+
 
         handleInitAdapter();
         setDataChat();
@@ -93,13 +89,8 @@ public class ChatFragment extends Fragment {
                 String text = editText.getText().toString();
                 if (text.isEmpty()) return;
 
-                DatabaseReference dataPush = chatDb.child(idChat).child("chat").push();
-                chatDb.child(idChat).child("newMessage").setValue(text);
-
-                Map newMessage = new HashMap();
-                newMessage.put("createdByUser", userCurrent.userModel.getUid());
-                newMessage.put("text", text);
-                dataPush.setValue(newMessage);
+                MessageModel newMessage = new MessageModel(text, userCurrent.getUserModel().getUid());
+                daoMessage.sendMessage(idChat, newMessage);
 
                 editText.setText(null);
             }
@@ -107,8 +98,8 @@ public class ChatFragment extends Fragment {
     }
 
     private void setDataUserChat() {
-        Picasso.get().load(user.userModel.firstImage()).into((ImageView) view.findViewById(R.id.imageUser));
-        ((TextView) view.findViewById(R.id.nameUser)).setText(user.userModel.getName());
+        Picasso.get().load(user.getUserModel().firstImage()).into((ImageView) view.findViewById(R.id.imageUser));
+        ((TextView) view.findViewById(R.id.nameUser)).setText(user.getUserModel().getName());
     }
 
     private void setEventReturn() {
@@ -133,39 +124,14 @@ public class ChatFragment extends Fragment {
     }
 
     private void setDataChat() {
-        chatDb.child(idChat).child("chat")
-                .addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                        JsonObject chatModel = new JsonObject();
-                        chatModel.addProperty("text", snapshot.child("text").getValue(String.class));
-                        chatModel.addProperty("createdByUser", snapshot.child("createdByUser").getValue(String.class));
-                        ChatAdapter.MessageModel chat = new Gson().fromJson(chatModel.getAsJsonObject(), ChatAdapter.MessageModel.class);
+        daoChat.loadMessage(idChat, (snapshot) -> {
+            String message = snapshot.child("message").getValue(String.class);
+            String createdByUser = snapshot.child("createdByUser").getValue(String.class);
 
-                        chatAdapter.addChat(chat);
+            MessageModel chat = new MessageModel(message, createdByUser);
 
-                        chatAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
+            chatAdapter.addChat(chat);
+            chatAdapter.notifyDataSetChanged();
+        });
     }
 }

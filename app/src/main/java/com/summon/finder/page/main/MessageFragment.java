@@ -40,7 +40,6 @@ public class MessageFragment extends Fragment {
         mainActivity = (MainActivity) getActivity();
         daoUser = new DAOUser();
 
-
         handleInitMatchMiniAdapter();
         handleAddDataMatchMiniAdapter();
 
@@ -82,7 +81,7 @@ public class MessageFragment extends Fragment {
 
     private void handleInitMessageAdapter() {
         messageAdapter = new MessageAdapter(userModel -> {
-            mainActivity.setFragmentMessage(userModel.idChat, userModel);
+            mainActivity.setFragmentMessage(userModel.getIdChat(), userModel);
         });
 
         RecyclerView listMessage = view.findViewById(R.id.viewMessageItem);

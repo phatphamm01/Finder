@@ -29,7 +29,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     public void addUserModel(ChatModel userModel) {
-        userModelList.removeIf(chatModel -> chatModel.userModel.getUid().equals(userModel.userModel.getUid()));
+        userModelList.removeIf(chatModel -> chatModel.getUserModel().getUid().equals(userModel.getUserModel().getUid()));
 
         this.userModelList.add(userModel);
     }
@@ -82,18 +82,18 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             messageItem = itemView.findViewById(R.id.messageItem);
         }
 
-        public void setData(ChatModel userModel, Callback callback) {
-            String image = userModel.userModel.getImages().values().stream().findFirst().get();
+        public void setData(ChatModel chatModel, Callback callback) {
+            String image = chatModel.getUserModel().firstImage();
 
             Picasso.get().load(image).into(imageView);
 
-            name.setText(userModel.userModel.getName());
-            newMessage.setText(userModel.newMessage);
+            name.setText(chatModel.getUserModel().getName());
+            newMessage.setText(chatModel.getNewMessage());
 
             messageItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    callback.event(userModel);
+                    callback.event(chatModel);
                 }
             });
         }

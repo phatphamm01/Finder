@@ -1,6 +1,5 @@
 package com.summon.finder.page.main;
 
-import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,7 +29,6 @@ import com.summon.finder.helper.location.IBaseGpsListener;
 import com.summon.finder.http.HTTPLocation;
 import com.summon.finder.model.ChatModel;
 import com.summon.finder.model.UserModel;
-import com.summon.finder.page.login.LoginActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -226,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        ChatModel userCurrent = new ChatModel(user.idChat, userModel, user.newMessage);
+        ChatModel userCurrent = new ChatModel(user.getIdChat(), userModel, user.getNewMessage());
         Fragment fragment = new ChatFragment(idChat, userCurrent, user);
 
         fragmentTransaction.replace(R.id.fragmentMessage, fragment, fragment.getTag());
