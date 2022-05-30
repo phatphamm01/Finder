@@ -1,7 +1,5 @@
 package com.summon.finder.DAO;
 
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -105,6 +103,10 @@ public class DAOUser {
     private DatabaseReference getDatabaseReference() {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         return userDB.child(firebaseUser.getUid());
+    }
+
+    public void addUser(UserModel newProfile) {
+        userDB.child(newProfile.getUid()).setValue(newProfile);
     }
 
     public interface ICallback {
