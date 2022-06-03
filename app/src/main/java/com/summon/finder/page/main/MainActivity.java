@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         userImage = (ImageView) findViewById(R.id.userImage);
-        toastExit = Toast.makeText(this, "Vui lòng double click để để thoát", Toast.LENGTH_SHORT);
+        toastExit = Toast.makeText(this, "Vui lòng double click để thoát", Toast.LENGTH_SHORT);
 
         userDao = new DAOUser();
         getUserCurrent();
@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
+        toastExit.cancel();
         toastExit.show();
 
 
@@ -119,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 doubleBackToExitPressedOnce = false;
             }
-        }, 200);
+        }, 1000);
     }
 
     private void getUserCurrent() {
@@ -144,11 +145,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         handlerTime.postDelayed(() -> {
-            if (TimeHelper.getDateNowTime().getMinutes() != timeSave) {
-                timeSave = TimeHelper.getDateNowTime().getMinutes();
-                TimeManager.getInstance().change(TimeHelper.getStringNowTime());
-                setTimeInterval();
-            }
+            timeSave = TimeHelper.getDateNowTime().getMinutes();
+            TimeManager.getInstance().change(TimeHelper.getStringNowTime());
+            Log.d("TAG", TimeHelper.getStringNowTime());
+
+            setTimeInterval();
         }, 1000);
     }
 
