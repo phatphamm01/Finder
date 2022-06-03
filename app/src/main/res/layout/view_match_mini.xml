@@ -5,25 +5,29 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="8dp">
+        android:layout_marginHorizontal="6dp">
+
 
         <com.ritesh.ratiolayout.RatioRelativeLayout
             android:id="@+id/ratioRelativeLayout"
-            android:layout_width="90dp"
+            android:layout_width="100dp"
             android:layout_height="0dp"
             app:fixed_attribute="WIDTH"
+            app:horizontal_ratio="3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:horizontal_ratio="3"
             app:vertical_ratio="4">
 
 
             <com.google.android.material.card.MaterialCardView
+                app:strokeColor="#FF6464"
+                app:strokeWidth="2px"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill_horizontal"
+                android:layout_margin="7dp"
                 android:background="#333"
                 android:elevation="4dp"
                 android:gravity="center">
@@ -37,7 +41,8 @@
                         android:id="@+id/match_imageView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:scaleType="centerCrop" />
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/sample1" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -55,5 +60,15 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/ratioRelativeLayout" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/online"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:backgroundTint="#CAC5C5"
+            app:cardCornerRadius="7dp"
+            app:cardElevation="0dp"
+            app:layout_constraintBottom_toBottomOf="@+id/ratioRelativeLayout"
+            app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

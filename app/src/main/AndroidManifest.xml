@@ -11,6 +11,7 @@
 
 
     <application
+        android:largeHeap="true"
         android:name=".Main"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -42,6 +43,16 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+<!--        <receiver android:name=".background.notification.NotificationGenarate"-->
+<!--            android:exported="true"-->
+<!--            android:permission="TODO">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.summon.finder.seen" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
+
+        <service android:name=".background.notification.NotificationService"/>
     </application>
 
 </manifest>

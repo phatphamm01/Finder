@@ -73,41 +73,54 @@
 
             <Button
                 android:id="@+id/login_fb"
+                style="@style/FirebaseUI.Button.AccountChooser.FacebookButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/fira_sans"
                 android:paddingVertical="15dp"
                 android:text="@string/fb_login"
-                android:textColor="#818181"
+                android:textAlignment="center"
+                android:textAllCaps="false"
                 android:textStyle="bold"
-                app:backgroundTint="@color/white"
                 app:cornerRadius="50dp" />
 
             <Button
                 android:id="@+id/login_google"
+                style="@style/FirebaseUI.Button.AccountChooser.GoogleButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/fira_sans"
                 android:paddingVertical="15dp"
                 android:text="@string/gmail_login"
-                android:textAllCaps="true"
-                android:textColor="#818181"
+                android:textAlignment="center"
+                android:textAllCaps="false"
                 android:textStyle="bold"
-                app:backgroundTint="@color/white"
                 app:cornerRadius="50dp" />
 
             <Button
-
+                android:id="@+id/login_userpass"
+                style="@style/FirebaseUI.Button.AccountChooser.AnonymousButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#F1859E"
                 android:fontFamily="@font/fira_sans"
                 android:paddingVertical="15dp"
                 android:text="@string/user_login"
-                android:textAllCaps="true"
-                android:textColor="#818181"
+                android:textAlignment="center"
+                android:textAllCaps="false"
                 android:textStyle="bold"
-                app:backgroundTint="@color/white"
                 app:cornerRadius="50dp" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnSignupE"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đăng kí tài khoản mới"
+            android:layout_marginTop="4dp"
+            android:textColor="#F6F6F6"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout3" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -16,18 +16,15 @@ public class GetUserTask {
         this.callback = callback;
     }
 
-    public void execute() {
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-
-        if (firebaseUser == null) {
-            callback.handle(null);
-            return;
-        }
-
+    public void execute(String uid) {
         DAOUser daoUser = new DAOUser();
 
-        daoUser.getUserSnapshot(snapshot -> {
+        daoUser.getUserSnapshotById(uid, snapshot -> {
+            if (snapshot == null) {
+                callback.handle(null);
+                return;
+            }
+
             Object objectValue = snapshot.getValue();
 
             if (objectValue == null) {

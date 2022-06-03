@@ -2,6 +2,7 @@ package com.summon.finder.page.setting;
 
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -11,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.databinding.ActivitySettingAccountBinding;
 import com.summon.finder.model.UserModel;
@@ -22,6 +24,8 @@ public class SettingAccountActivity extends AppCompatActivity implements View.On
     public UserModel userModel;
     public ImageView imageView;
 
+    private DAOUser daoUser;
+
     private int step = 1;
     private ActivitySettingAccountBinding binding;
 
@@ -31,15 +35,20 @@ public class SettingAccountActivity extends AppCompatActivity implements View.On
         binding = ActivitySettingAccountBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-
-
-        binding.btnComeback.setOnClickListener(this);
+        Intent intent = getIntent();
+        String uid = intent.getStringExtra("uid");
+        daoUser = new DAOUser();
 
         new GetUserTask(newUserModel -> {
             userModel = newUserModel;
 
             handleViewWhenChangeStep(step);
-        }).execute();
+        }).execute(uid);
+
+
+        binding.btnComeback.setOnClickListener(this);
+
+
     }
 
     private void setStep(int step) {

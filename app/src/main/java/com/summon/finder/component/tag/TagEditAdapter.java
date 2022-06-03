@@ -8,28 +8,26 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
-import com.summon.finder.page.setting.SettingAccountActivity;
-import com.summon.finder.page.setting.SettingAccountSixFragment;
+import com.summon.finder.page.main.EditProfileFragment;
+import com.summon.finder.page.main.MainActivity;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 public class TagEditAdapter extends RecyclerView.Adapter<TagEditAdapter.ViewHolder> {
-    private final Context mContext;
+    private final MainActivity mContext;
     private final List<String> tagList;
-    private final Fragment fragment;
+    private final EditProfileFragment fragment;
     HashMap<String, ViewHolder> holderlist;
 
 
-    public TagEditAdapter(Context mContext, Fragment fragment, List<String> tagList) {
-        this.mContext =  mContext;
+    public TagEditAdapter(Context mContext, EditProfileFragment fragment, List<String> tagList) {
+        this.mContext = (MainActivity) mContext;
         this.fragment = fragment;
         this.tagList = tagList;
         holderlist = new HashMap<>();
@@ -55,6 +53,15 @@ public class TagEditAdapter extends RecyclerView.Adapter<TagEditAdapter.ViewHold
 
         if (!holderlist.containsKey(position)) {
             holderlist.put(tag, holder);
+        }
+
+        //Trick
+        List<String> tags = mContext.getUserModel().getTags();
+
+        Optional<String> isCheck = tags.stream().filter(value -> value.equals(tag)).findFirst();
+
+        if (isCheck.isPresent()) {
+            holder.setStyle();
         }
     }
 
@@ -86,13 +93,16 @@ public class TagEditAdapter extends RecyclerView.Adapter<TagEditAdapter.ViewHold
             mBtnTag.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Boolean isCheck = mContext.getUserModel().addTagListSelected(s);
 
-//                    if (isCheck) {
+                    if (isCheck) {
                         setStyle();
-//                        return;
-//                    }
-//
-//                    removeStyle();
+
+                        return;
+                    }
+
+                    removeStyle();
+
                 }
             });
         }

@@ -2,6 +2,7 @@ package com.summon.finder.component.card;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -11,28 +12,30 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexWrap;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
+import com.google.android.material.card.MaterialCardView;
 import com.squareup.picasso.Picasso;
 import com.summon.finder.R;
+import com.summon.finder.helper.time.TimeHelper;
 import com.summon.finder.model.UserModel;
+import com.summon.finder.page.main.MainActivity;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class CardStackAdapter extends RecyclerView.Adapter<CardStackAdapter.ViewHolder> {
-    private final Context context;
+    private final MainActivity context;
     private List<UserModel> userModelList = new ArrayList<>();
 
     public CardStackAdapter(Context context) {
-        this.context = context;
+        this.context = (MainActivity) context;
     }
 
     public List<UserModel> getUserModelList() {
@@ -77,6 +80,11 @@ public class CardStackAdapter extends RecyclerView.Adapter<CardStackAdapter.View
     }
 
     @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+    }
+
+    @Override
     public int getItemCount() {
         return userModelList.size();
     }
@@ -84,10 +92,10 @@ public class CardStackAdapter extends RecyclerView.Adapter<CardStackAdapter.View
     public class ViewHolder extends RecyclerView.ViewHolder {
         private final RecyclerView recyclerLocationImageView;
         private final RecyclerView recyclerTagView;
+        private final MaterialCardView statusWorkingIcon;
         private final ImageView image;
-        private final TextView name;
-        private final TextView age;
-        private final TextView school;
+        private final TextView name, age, school, distanceView, statusWorking;
+
         private final List<String> images = new ArrayList<>();
         private int index;
         private int lengthImage = 0;
@@ -105,6 +113,9 @@ public class CardStackAdapter extends RecyclerView.Adapter<CardStackAdapter.View
             name = itemView.findViewById(R.id.item_name);
             age = itemView.findViewById(R.id.item_age);
             school = itemView.findViewById(R.id.item_school);
+            distanceView = itemView.findViewById(R.id.item_distance);
+            statusWorking = itemView.findViewById(R.id.statusWorking);
+            statusWorkingIcon = itemView.findViewById(R.id.statusWorkingIcon);
 
             recyclerLocationImageView = itemView.findViewById(R.id.locationImageList);
             recyclerTagView = itemView.findViewById(R.id.tagList);
@@ -187,11 +198,34 @@ public class CardStackAdapter extends RecyclerView.Adapter<CardStackAdapter.View
 
             name.setText(data.getName());
             try {
-                age.setText(getAge(data));
+                age.setText(data.handleGetAge());
             } catch (Exception ignored) {
 
             }
             school.setText(data.getSchool());
+            long distance = context.getUserModel().handleGetDistance(data);
+
+            if (distance == -1) {
+                distanceView.setText("Cách xa " + "???" + " km");
+            } else {
+                distanceView.setText("Cách xa " + Math.toIntExact(distance) + " km");
+
+                ColorStateList csl = AppCompatResources.getColorStateList(context, R.color.gray_400);
+
+                statusWorkingIcon.setBackgroundTintList(csl);
+            }
+
+            try {
+                TimeHelper.TimeDifference mili = TimeHelper.getTimeDifference(data.getLastOperatingTime(), TimeHelper.getStringNowTime());
+                if (mili.getMiliSeconds() < new TimeHelper.TimeDifference(0, 5, 0, 0, 0).getMiliSeconds()) {
+                    statusWorking.setText("Có hoạt động gần đây");
+                } else {
+                    statusWorking.setText("Hoạt động cách đây " + TimeHelper.findDifference(data.getLastOperatingTime(), TimeHelper.getStringNowTime()));
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
 
             handleInitTagAdapter();
             handleDataTagAdapter(data);
@@ -212,18 +246,6 @@ public class CardStackAdapter extends RecyclerView.Adapter<CardStackAdapter.View
             });
         }
 
-        private String getAge(UserModel data) {
-            DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            Date date = new Date();
 
-            String currentData = data.getBirthday();
-            String nowDate = dateFormat.format(date);
-
-            return String.valueOf(getYear(nowDate) - getYear(currentData));
-        }
-
-        private Integer getYear(String date) {
-            return Integer.valueOf(date.substring(date.lastIndexOf("/") + 1));
-        }
     }
 }

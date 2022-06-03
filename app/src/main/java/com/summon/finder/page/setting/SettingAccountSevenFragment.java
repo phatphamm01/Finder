@@ -4,6 +4,7 @@ package com.summon.finder.page.setting;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.ritesh.ratiolayout.RatioRelativeLayout;
 import com.squareup.picasso.Picasso;
@@ -21,6 +23,7 @@ import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.page.main.MainActivity;
 import com.summon.finder.service.UpdateImageTask;
+import com.summon.finder.utils.changeintent.ChangeIntent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -102,11 +105,11 @@ public class SettingAccountSevenFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == 404) {
+        if (requestCode == 404 && data != null && data.getData() != null && !data.getData().toString().isEmpty()) {
             String idName = requireContext().getResources().getResourceEntryName(settingAccountActivity.imageView.getId());
             String id = idName.substring(idName.length() - 1);
 
-            settingAccountActivity.userModel.addImage(id, data.getData().toString());
+            settingAccountActivity.userModel.handleSetImage(id, data.getData().toString());
             handleContinue();
         }
     }
@@ -158,6 +161,9 @@ public class SettingAccountSevenFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                View loadingView = view.findViewById(R.id.loading);
+
+                loadingView.setVisibility(View.VISIBLE);
                 Observable<UpdateImageTask.IDataDto> uriObservable = UpdateImageTask.getInstance().getUriObservable(settingAccountActivity.userModel.getImages());
                 Observer<UpdateImageTask.IDataDto> uriObserver = UpdateImageTask.getInstance().getUriObserver(new Observer<UpdateImageTask.IDataDto>() {
                     @Override
@@ -167,11 +173,17 @@ public class SettingAccountSevenFragment extends Fragment {
 
                     @Override
                     public void onNext(UpdateImageTask.@NonNull IDataDto iDataDto) {
-                        settingAccountActivity.userModel.addImage(iDataDto.idString, iDataDto.uri.toString());
+                        settingAccountActivity.userModel.handleSetImage(iDataDto.idString, iDataDto.uri.toString());
                     }
 
                     @Override
                     public void onError(@NonNull Throwable e) {
+                        new android.os.Handler(Looper.getMainLooper()).post(
+                                new Runnable() {
+                                    public void run() {
+                                        loadingView.setVisibility(View.INVISIBLE);
+                                    }
+                                });
 
                     }
 
@@ -180,8 +192,18 @@ public class SettingAccountSevenFragment extends Fragment {
                         settingAccountActivity.userModel.setActive(true);
                         new DAOUser().update(settingAccountActivity.userModel);
 
-                        Intent intent = new Intent(settingAccountActivity, MainActivity.class);
-                        startActivity(intent);
+                        FragmentManager fm = settingAccountActivity.getSupportFragmentManager();
+                        for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
+                            fm.popBackStack();
+                        }
+
+                        new android.os.Handler(Looper.getMainLooper()).post(
+                                new Runnable() {
+                                    public void run() {
+                                        loadingView.setVisibility(View.INVISIBLE);
+                                    }
+                                });
+                        ChangeIntent.getInstance().authGuard(settingAccountActivity.userModel.getUid(), settingAccountActivity, new Intent(settingAccountActivity, MainActivity.class));
                     }
                 });
 

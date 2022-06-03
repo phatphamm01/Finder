@@ -2,6 +2,8 @@ package com.summon.finder.component.slide;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
@@ -14,6 +16,7 @@ import com.google.android.material.slider.Slider;
 import com.summon.finder.R;
 
 public class ContinuousSlider extends LinearLayout {
+    Handler handler;
     private int maxField;
     private int minField;
     private int valueField;
@@ -84,5 +87,37 @@ public class ContinuousSlider extends LinearLayout {
         slideView = (Slider) findViewById(R.id.continuousSlider);
         titleView = (TextView) findViewById(R.id.title);
         valueView = (TextView) findViewById(R.id.value);
+    }
+
+    public void setValueSlide(float value) {
+        slideView.setValue(value);
+    }
+
+    public float getValueSlide() {
+        return slideView.getValue();
+    }
+
+    public void onAddEventChange(ICallback cb) {
+        slideView.addOnChangeListener(new Slider.OnChangeListener() {
+            @Override
+            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+                if (handler != null) {
+                    handler.removeCallbacksAndMessages(null);
+                    handler = null;
+                }
+
+                handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        cb.execute(value);
+                    }
+                }, 1000);
+            }
+        });
+    }
+
+    public interface ICallback {
+        void execute(float value);
     }
 }

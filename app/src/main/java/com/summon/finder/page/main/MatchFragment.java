@@ -14,17 +14,18 @@ import com.summon.finder.DAO.DAOMatch;
 import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.component.match.MatchAdapter;
+import com.summon.finder.helper.time.TimeHelper;
 import com.summon.finder.model.ChatModel;
 import com.summon.finder.model.UserModel;
 
 
 public class MatchFragment extends Fragment {
+    private final DAOMatch daoMatch = new DAOMatch();
+    private final DAOUser daoUser = new DAOUser();
     private View view;
     private MainActivity mainActivity;
     private MatchAdapter adapter;
     private TextView likeNumber;
-    private final DAOMatch daoMatch = new DAOMatch();
-    private final DAOUser daoUser = new DAOUser();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,7 +62,7 @@ public class MatchFragment extends Fragment {
 
             daoUser.getUserSnapshotById(idUser, snapshotData -> {
                 UserModel user = new UserModel(snapshotData);
-                ChatModel userModel = new ChatModel(snapshot.child("chatId").getValue(String.class), user, "");
+                ChatModel userModel = new ChatModel(snapshot.child("chatId").getValue(String.class), "", user);
                 adapter.addData(userModel);
 
                 adapter.notifyDataSetChanged();

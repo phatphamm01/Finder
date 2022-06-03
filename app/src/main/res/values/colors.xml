@@ -18,6 +18,7 @@
     <color name="location_active">#99505050</color>
     <color name="btn_unactive">#e9ebee</color>
     <color name="heart_active">#2ae5c3</color>
+    <color name="online">#31a24c</color>
     <color name="cancel_active">#fe4654</color>
     <color name="page_unactive">#FF7c8591</color>
 </resources>

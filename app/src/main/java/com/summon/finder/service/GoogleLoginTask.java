@@ -1,6 +1,7 @@
 package com.summon.finder.service;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -19,10 +20,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.summon.finder.DAO.DAOUser;
-import com.summon.finder.model.UserModel;
 import com.summon.finder.page.main.MainActivity;
 import com.summon.finder.page.setting.SettingAccountActivity;
-import com.summon.finder.utils.ChangeIntent;
+import com.summon.finder.utils.changeintent.ChangeIntent;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -85,22 +85,25 @@ public class GoogleLoginTask extends AsyncTask<String, Void, Void> {
                     public void onSuccess(AuthResult authResult) {
                         Log.d(TAG, "onSuccess: Logged In");
 
+
+                        String uid = authResult.getUser().getUid();
+
                         try {
                             if (authResult.getAdditionalUserInfo().isNewUser()) {
                                 handleAddDataToDB(authResult);
 
-                                ChangeIntent.getInstance().authGuard(context, SettingAccountActivity.class);
+                                ChangeIntent.getInstance().authGuard(uid, context, new Intent(context, SettingAccountActivity.class));
                             } else {
                                 GetUserTask getUserTask = new GetUserTask(userModel -> {
                                     if (!userModel.getActive()) {
-                                        ChangeIntent.getInstance().authGuard(context, SettingAccountActivity.class);
+                                        ChangeIntent.getInstance().authGuard(uid, context, new Intent(context, SettingAccountActivity.class));
                                         return;
                                     }
 
-                                    ChangeIntent.getInstance().authGuard(context, MainActivity.class);
+                                    ChangeIntent.getInstance().authGuard(uid, context, new Intent(context, MainActivity.class));
                                 });
 
-                                getUserTask.execute();
+                                getUserTask.execute(uid);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -108,33 +111,15 @@ public class GoogleLoginTask extends AsyncTask<String, Void, Void> {
                     }
 
                     private void handleAddDataToDB(AuthResult authResult) throws JSONException {
-                        UserModel newProfile = handleSuccessGoogleLogin(authResult);
-                        DAOUser daoUser = new DAOUser();
-                        daoUser.addUser(newProfile);
-                    }
-
-                    private UserModel handleSuccessGoogleLogin(AuthResult authResult) throws JSONException {
                         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                         String uid = firebaseUser.getUid();
                         String name = firebaseUser.getDisplayName();
 
-                        UserModel userModel = new UserModel();
-                        userModel.setUid(uid);
-                        userModel.setName(name);
-
-//                        if (profile == null) {
-//                            return userModel;
-//                        }
-//
-//                        JSONArray birthdays = (JSONArray) profile.opt("birthdays");
-//                        if (birthdays == null) {
-//                            return userModel;
-//                        }
-//                        JSONObject data = (JSONObject) birthdays.getJSONObject(1).get("date");
-//                        userModel.setBirthday(data.get("day") + "/" + data.get("month") + "/" + data.get("year"));
-
-                        return userModel;
+                        DAOUser daoUser = new DAOUser();
+                        daoUser.createUser(uid, name);
                     }
+
+
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override

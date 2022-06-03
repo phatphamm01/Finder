@@ -1,4 +1,4 @@
-package com.summon.finder.helper.location;
+package com.summon.finder.utils.location;
 
 import android.Manifest;
 import android.app.Activity;

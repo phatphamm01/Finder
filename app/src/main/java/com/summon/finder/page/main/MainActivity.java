@@ -9,6 +9,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,11 +25,13 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
-import com.summon.finder.helper.location.GpsService;
-import com.summon.finder.helper.location.IBaseGpsListener;
+import com.summon.finder.helper.time.TimeHelper;
 import com.summon.finder.http.HTTPLocation;
 import com.summon.finder.model.ChatModel;
 import com.summon.finder.model.UserModel;
+import com.summon.finder.utils.location.GpsService;
+import com.summon.finder.utils.location.IBaseGpsListener;
+import com.summon.finder.utils.timeobserver.TimeManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,13 +45,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, IBaseGpsListener {
+    public ImageView imageView;
     int delayMillis = 1000;
+    boolean doubleBackToExitPressedOnce = false;
     private GpsService gpsService;
     private Location currentLocation;
     private DAOUser userDao;
     private UserModel userModel;
-    private Handler handler;
+    private Handler handlerLocation, handlerTime;
     private ImageView userImage;
+    private Toast toastExit;
+    private int timeSave;
+
 
     public UserModel getUserModel() {
         return userModel;
@@ -62,19 +70,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        userImage =(ImageView) findViewById(R.id.userImage);
+        userImage = (ImageView) findViewById(R.id.userImage);
+        toastExit = Toast.makeText(this, "Vui lòng double click để để thoát", Toast.LENGTH_SHORT);
 
         userDao = new DAOUser();
         getUserCurrent();
 
         handleLocation(this);
         setLocationInterval();
+        setTimeInterval();
 
         handleSetStatusWorking();
         setFragmentDefault();
         addEventOnClickChangeFragment();
-
-
 
 
         userImage.setOnClickListener(v -> {
@@ -84,8 +92,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onStop() {
-        handler.removeCallbacksAndMessages(null);
+        handlerLocation.removeCallbacksAndMessages(null);
+        handlerTime.removeCallbacksAndMessages(null);
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        toastExit.cancel();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+
+        toastExit.show();
+
+
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce = false;
+            }
+        }, 200);
     }
 
     private void getUserCurrent() {
@@ -104,10 +138,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void setLocationInterval() {
-        handler = new Handler(Looper.getMainLooper());
+    private void setTimeInterval() {
+        timeSave = TimeHelper.getDateNowTime().getMinutes();
+        handlerTime = new Handler(Looper.getMainLooper());
 
-        handler.postDelayed(() -> {
+
+        handlerTime.postDelayed(() -> {
+            if (TimeHelper.getDateNowTime().getMinutes() != timeSave) {
+                timeSave = TimeHelper.getDateNowTime().getMinutes();
+                TimeManager.getInstance().change(TimeHelper.getStringNowTime());
+                setTimeInterval();
+            }
+        }, 1000);
+    }
+
+    private void setLocationInterval() {
+        handlerLocation = new Handler(Looper.getMainLooper());
+
+        handlerLocation.postDelayed(() -> {
             delayMillis = 60 * 1000;
             setLocationToDB();
         }, delayMillis);
@@ -224,18 +272,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        ChatModel userCurrent = new ChatModel(user.getIdChat(), userModel, user.getNewMessage());
+        ChatModel userCurrent = new ChatModel(user.getIdChat(), user.getNewMessage(), userModel);
         Fragment fragment = new ChatFragment(idChat, userCurrent, user);
 
         fragmentTransaction.replace(R.id.fragmentMessage, fragment, fragment.getTag());
         fragmentTransaction.commit();
-    }
-
-
-    public enum FragmentUser{
-        PROFILE,
-        EDIT_PROFILE,
-        SETTING,
     }
 
     public void setFragmentUser(FragmentUser fragmentUser) {
@@ -245,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         Fragment fragment = new ProfileFragment();
 
-        switch (fragmentUser){
+        switch (fragmentUser) {
             case PROFILE:
                 fragment = new ProfileFragment();
                 break;
@@ -299,7 +340,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
@@ -318,6 +358,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onGpsStatusChanged(int event) {
 
+    }
+
+    public enum FragmentUser {
+        PROFILE,
+        EDIT_PROFILE,
+        SETTING,
     }
 
     enum FRAGMENT {

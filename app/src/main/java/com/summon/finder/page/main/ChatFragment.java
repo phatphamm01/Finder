@@ -22,8 +22,11 @@ import com.summon.finder.DAO.DAOChat;
 import com.summon.finder.DAO.DAOMessage;
 import com.summon.finder.R;
 import com.summon.finder.component.chat.ChatAdapter;
+import com.summon.finder.helper.time.TimeHelper;
 import com.summon.finder.model.ChatModel;
 import com.summon.finder.model.MessageModel;
+import com.summon.finder.utils.timeobserver.TimeManager;
+import com.summon.finder.utils.timeobserver.WorkingListener;
 
 
 public class ChatFragment extends Fragment {
@@ -38,6 +41,7 @@ public class ChatFragment extends Fragment {
     private ChatAdapter chatAdapter;
     private EditText editText;
     private Button btnSend;
+    private TextView activeStatus;
 
     public ChatFragment(String idChat, ChatModel userCurrent, ChatModel user) {
         this.idChat = idChat;
@@ -58,6 +62,7 @@ public class ChatFragment extends Fragment {
         chatDb = FirebaseDatabase.getInstance().getReference("chats");
         editText = view.findViewById(R.id.messageText);
         btnSend = view.findViewById(R.id.btnSend);
+        activeStatus = view.findViewById(R.id.activeStatus);
 
 
         handleInitAdapter();
@@ -66,6 +71,7 @@ public class ChatFragment extends Fragment {
         setEventReturn();
         setDataUserChat();
         setEventSendMessage();
+
 
         return view;
     }
@@ -99,6 +105,7 @@ public class ChatFragment extends Fragment {
 
     private void setDataUserChat() {
         Picasso.get().load(user.getUserModel().firstImage()).into((ImageView) view.findViewById(R.id.imageUser));
+
         ((TextView) view.findViewById(R.id.nameUser)).setText(user.getUserModel().getName());
     }
 
@@ -124,6 +131,19 @@ public class ChatFragment extends Fragment {
     }
 
     private void setDataChat() {
+        String id = user.getUserModel().getUid();
+
+        if (this.user.getUserModel().getWorking()) {
+            activeStatus.setText("Đang hoạt động");
+            TimeManager.getInstance().getService().unsubscribe(id);
+        } else {
+            WorkingListener timeView = new WorkingListener(id, activeStatus, user.getUserModel().getLastOperatingTime());
+            timeView.handleSetStatus(TimeHelper.getStringNowTime());
+
+            TimeManager.getInstance().getService().subscribe(timeView);
+        }
+
+
         daoChat.loadMessage(idChat, (snapshot) -> {
             String message = snapshot.child("message").getValue(String.class);
             String createdByUser = snapshot.child("createdByUser").getValue(String.class);

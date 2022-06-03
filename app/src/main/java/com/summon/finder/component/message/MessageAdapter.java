@@ -12,13 +12,24 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
 import com.summon.finder.R;
+import com.summon.finder.helper.time.TimeHelper;
 import com.summon.finder.model.ChatModel;
+import com.summon.finder.utils.timeobserver.TimeManager;
+import com.summon.finder.utils.timeobserver.WorkingListener;
+import com.summon.finder.utils.timeobserver.WorkingMessListener;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
+    Callback callback;
     private List<ChatModel> userModelList = new ArrayList<>();
+
+    public MessageAdapter(Callback callback) {
+        this.callback = callback;
+    }
 
     public List<ChatModel> getUserModelList() {
         return userModelList;
@@ -31,17 +42,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     public void addUserModel(ChatModel userModel) {
         userModelList.removeIf(chatModel -> chatModel.getUserModel().getUid().equals(userModel.getUserModel().getUid()));
 
-        this.userModelList.add(userModel);
-    }
+        userModelList.add(userModel);
+        List<ChatModel> result = userModelList.stream()
+                .sorted(Comparator.comparing(ChatModel::getNewMessageDate).reversed())
+                .collect(Collectors.toList());
 
-    public interface Callback {
-        void event(ChatModel userModel);
-    }
-
-    Callback callback;
-
-    public MessageAdapter(Callback callback) {
-        this.callback = callback;
+        setUserModelList(result);
     }
 
     @NonNull
@@ -67,11 +73,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return position;
     }
 
+    public interface Callback {
+        void event(ChatModel userModel);
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
-        TextView name, newMessage;
+        TextView name, newMessage, activeStatus;
         ConstraintLayout messageItem;
+
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -80,9 +90,22 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             name = itemView.findViewById(R.id.name);
             newMessage = itemView.findViewById(R.id.newMessage);
             messageItem = itemView.findViewById(R.id.messageItem);
+            activeStatus = itemView.findViewById(R.id.activeStatus);
         }
 
         public void setData(ChatModel chatModel, Callback callback) {
+            String id = chatModel.getUserModel().getUid();
+            if (chatModel.getUserModel().getWorking()) {
+                activeStatus.setText("Đang hoạt động");
+                TimeManager.getInstance().getService().unsubscribe("message" + id);
+            } else {
+                WorkingMessListener timeView = new WorkingMessListener("message" + id, activeStatus, chatModel.getUserModel().getLastOperatingTime());
+                timeView.handleSetStatus(TimeHelper.getStringNowTime());
+
+                TimeManager.getInstance().getService().subscribe(timeView);
+            }
+
+
             String image = chatModel.getUserModel().firstImage();
 
             Picasso.get().load(image).into(imageView);

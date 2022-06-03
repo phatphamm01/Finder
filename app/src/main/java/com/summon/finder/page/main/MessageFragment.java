@@ -5,18 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.summon.finder.DAO.DAOChat;
+import com.summon.finder.DAO.DAOMatch;
 import com.summon.finder.DAO.DAOUser;
 import com.summon.finder.R;
 import com.summon.finder.component.match.MatchMiniAdapter;
@@ -32,6 +26,11 @@ public class MessageFragment extends Fragment {
     private MessageAdapter messageAdapter;
     private DAOUser daoUser;
     private MainActivity mainActivity;
+    private DAOMatch daoMatch;
+    private DAOChat daoChat;
+    private View tinnhan;
+    private View tuonghopmoi;
+    private View noDataView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -39,6 +38,11 @@ public class MessageFragment extends Fragment {
         view = inflater.inflate(R.layout.fragment_message, container, false);
         mainActivity = (MainActivity) getActivity();
         daoUser = new DAOUser();
+        daoMatch = new DAOMatch();
+        daoChat = new DAOChat();
+        tinnhan = view.findViewById(R.id.tinnhan);
+        tuonghopmoi = view.findViewById(R.id.tuonghopmoi);
+        noDataView = view.findViewById(R.id.noData);
 
         handleInitMatchMiniAdapter();
         handleAddDataMatchMiniAdapter();
@@ -46,11 +50,34 @@ public class MessageFragment extends Fragment {
         handleInitMessageAdapter();
         handleAddDataMessageAdapter();
 
+        handleVisibleTuongHopMoi();
+        handleVisibleTinNhan();
+
+
         return view;
     }
 
+    private void handleVisibleTinNhan() {
+        if (messageAdapter.getItemCount() == 0) {
+            tinnhan.setVisibility(View.INVISIBLE);
+        } else {
+            tinnhan.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void handleVisibleTuongHopMoi() {
+        if (matchMiniAdapter.getItemCount() == 0) {
+            tuonghopmoi.setVisibility(View.INVISIBLE);
+            noDataView.setVisibility(View.VISIBLE);
+
+        } else {
+            tuonghopmoi.setVisibility(View.VISIBLE);
+            noDataView.setVisibility(View.INVISIBLE);
+        }
+    }
+
     private void handleInitMatchMiniAdapter() {
-        matchMiniAdapter = new MatchMiniAdapter();
+        matchMiniAdapter = new MatchMiniAdapter(mainActivity);
 
         RecyclerView listMatch = view.findViewById(R.id.viewMatchMini);
 
@@ -62,21 +89,23 @@ public class MessageFragment extends Fragment {
     }
 
     private void handleAddDataMatchMiniAdapter() {
-        UserModel userModel = new UserModel();
-        userModel.addImage("1", "https://scontent.fsgn8-1.fna.fbcdn.net/v/t39.30808-6/235702922_131907059128951_4157223209859400355_n.jpg?_nc_cat=110&ccb=1-6&_nc_sid=174925&_nc_ohc=aDXM5634oOUAX-rzJ99&_nc_ht=scontent.fsgn8-1.fna&oh=00_AT_TrP6bc6QyM3vwGweo_cfhW2jgjwxHMBYxZXZC8jxmxA&oe=6289F6D2");
-        userModel.setName("Phạm Minh Phát");
-        userModel.setSchool("SPKT");
+        String uid = mainActivity.getUserModel().getUid();
+        daoMatch.getMatch(uid, snapshot -> {
+            String idUser = snapshot.getKey();
+            String isFound = snapshot.child("chatId").getValue(String.class);
 
-        matchMiniAdapter.addUserModel(userModel);
-        matchMiniAdapter.addUserModel(userModel);
-        matchMiniAdapter.addUserModel(userModel);
-        matchMiniAdapter.addUserModel(userModel);
-        matchMiniAdapter.addUserModel(userModel);
-        matchMiniAdapter.addUserModel(userModel);
-        matchMiniAdapter.addUserModel(userModel);
-        matchMiniAdapter.addUserModel(userModel);
 
-        matchMiniAdapter.notifyDataSetChanged();
+            if (isFound == null || isFound.isEmpty()) return;
+
+            daoUser.getUserSnapshotById(idUser, snapshotData -> {
+                UserModel user = new UserModel(snapshotData);
+                ChatModel chatModel = new ChatModel(snapshot.child("chatId").getValue(String.class), "", user);
+                matchMiniAdapter.addData(chatModel);
+
+                matchMiniAdapter.notifyDataSetChanged();
+                handleVisibleTuongHopMoi();
+            });
+        });
     }
 
     private void handleInitMessageAdapter() {
@@ -93,61 +122,23 @@ public class MessageFragment extends Fragment {
     }
 
     private void handleAddDataMessageAdapter() {
-        daoUser.getUser().child("match").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                if (snapshot.child("chatId").getValue() == null) return;
-                String idUser = snapshot.getKey();
-                String idChat = snapshot.child("chatId").getValue().toString();
+        daoUser.getMatchByIdAddChildEvent(mainActivity.getUserModel().getUid(), snapshot -> {
+            if (snapshot.child("chatId").getValue() == null) return;
+            String idChat = snapshot.child("chatId").getValue().toString();
+            String idUser = snapshot.getKey();
 
 
-                final FirebaseDatabase instance = FirebaseDatabase.getInstance();
+            daoUser.getUserSnapshotById(idUser, snapshotUser -> {
+                daoChat.getNewMessageAddValue(idChat, (text, date) -> {
+                    UserModel userModel = new UserModel(snapshotUser);
 
+                    ChatModel chatModel = new ChatModel(idChat, text == null ? "Hãy gửi lời chào tới nhau" : text, userModel, date);
 
-                instance.getReference("user").child(idUser).get().addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
-                    @Override
-                    public void onSuccess(DataSnapshot dataSnapshot) {
-                        instance.getReference("chats").child(idChat).child("newMessage")
-                                .addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        String newMessage = snapshot.getValue(String.class);
-                                        UserModel userModel = new UserModel(dataSnapshot);
-
-                                        ChatModel chatModel = new ChatModel(idChat, userModel, newMessage == null ? "Hãy gửi lời chào tới nhau" : newMessage);
-
-                                        messageAdapter.addUserModel(chatModel);
-                                        messageAdapter.notifyDataSetChanged();
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
-                    }
+                    messageAdapter.addUserModel(chatModel);
+                    messageAdapter.notifyDataSetChanged();
+                    handleVisibleTinNhan();
                 });
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
+            });
         });
     }
 }

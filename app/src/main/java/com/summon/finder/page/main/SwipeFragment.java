@@ -48,16 +48,12 @@ import java.util.stream.IntStream;
 
 public class SwipeFragment extends Fragment {
     private static final String TAG = "MainActivity";
+    private final DAOUser daoUser = new DAOUser();
     View view;
     MainActivity mainActivity;
-
     private CardStackLayoutManager cardStackLayoutManager;
-
     private CardStackAdapter cardStackAdapter;
-
     private DatabaseReference usersDb;
-    private final DAOUser daoUser = new DAOUser();
-
     private List<String> isNope = new ArrayList<>();
 
     @Override
@@ -137,7 +133,7 @@ public class SwipeFragment extends Fragment {
                     daoUser.match(uidUser);
 
                     String uidCurrent = mainActivity.getUserModel().getUid();
-                    daoUser.handleLiked(user, uidUser, uidCurrent, () -> {
+                    daoUser.handleLiked(user, uidUser, uidCurrent , () -> {
                         Toast.makeText(mainActivity, "Bạn có một kết nối mới", Toast.LENGTH_LONG).show();
                     });
                 }
@@ -342,6 +338,11 @@ public class SwipeFragment extends Fragment {
         if (snapshotUser.exists() && snapshotUser.child("gender").getValue() != null
                 && snapshotUser.child("active").getValue(Boolean.class)) {
             String uid = snapshotUser.getKey();
+
+            if(uid.equals(mainActivity.getUserModel().getUid())){
+                return;
+            }
+
             String gender = snapshotUser.child("gender").getValue().toString();
 
             if (gender.equals(oppositeUserSex)) {

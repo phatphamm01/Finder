@@ -7,7 +7,10 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
 import com.summon.finder.R;
 
 
@@ -31,11 +34,19 @@ public class ProfileFragment extends Fragment {
         setEventToSetting();
         setEventToEditProfile();
 
+        setDataUser();
+
 
         return view;
     }
 
+    private void setDataUser() {
+        ImageView avatarView = (ImageView) view.findViewById(R.id.avatar);
+        TextView nameView = (TextView) view.findViewById(R.id.name);
 
+        Picasso.get().load(mainActivity.getUserModel().firstImage()).into(avatarView);
+        nameView.setText(mainActivity.getUserModel().getName());
+    }
 
 
     private void setEventToEditProfile() {

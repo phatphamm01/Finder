@@ -1,14 +1,24 @@
 package com.summon.finder.model;
 
+import java.util.Date;
+
 public class ChatModel {
     private String idChat;
     private String newMessage;
     private UserModel userModel;
+    private Date newMessageDate = new Date(2323223232L);
 
-    public ChatModel(String idChat, UserModel userUser, String newMessage) {
+    public ChatModel(String idChat, String newMessage, UserModel userModel) {
         this.idChat = idChat;
-        this.userModel = userUser;
         this.newMessage = newMessage;
+        this.userModel = userModel;
+    }
+
+    public ChatModel(String idChat, String newMessage, UserModel userModel, Date dateNewMessage) {
+        this.idChat = idChat;
+        this.newMessage = newMessage;
+        this.userModel = userModel;
+        this.newMessageDate = dateNewMessage != null ? dateNewMessage : this.newMessageDate;
     }
 
     public String getIdChat() {
@@ -35,7 +45,11 @@ public class ChatModel {
         this.userModel = userModel;
     }
 
-    public void loadMessage() {
+    public Date getNewMessageDate() {
+        return newMessageDate;
+    }
 
+    public void setNewMessageDate(Date newMessageDate) {
+        this.newMessageDate = newMessageDate;
     }
 }

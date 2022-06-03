@@ -114,23 +114,25 @@ public class SettingAccountSixFragment extends Fragment {
         button.setBackgroundColor(getResources().getColor(R.color.neural_80));
     }
 
-    public List<String> mixArrayString(List<String> arr) {
-        int length = arr.size();
-        int[] indexs = IntStream.range(0, length).toArray();
 
-        Random rand = new Random();
-        for (int i = 0; i < length; i++) {
-            int int_random = rand.nextInt(length);
-            int temp = indexs[i];
-            indexs[i] = indexs[int_random];
-            indexs[int_random] = temp;
-        }
-
-        String[] arrMixed = new String[length];
-        for (int i = 0; i < length; i++) {
-            arrMixed[indexs[i]] = arr.get(i);
-        }
-
-        return Arrays.asList(arrMixed);
-    }
 }
+
+//    public List<String> mixArrayString(List<String> arr) {
+//        int length = arr.size();
+//        int[] indexs = IntStream.range(0, length).toArray();
+//
+//        Random rand = new Random();
+//        for (int i = 0; i < length; i++) {
+//            int int_random = rand.nextInt(length);
+//            int temp = indexs[i];
+//            indexs[i] = indexs[int_random];
+//            indexs[int_random] = temp;
+//        }
+//
+//        String[] arrMixed = new String[length];
+//        for (int i = 0; i < length; i++) {
+//            arrMixed[indexs[i]] = arr.get(i);
+//        }
+//
+//        return Arrays.asList(arrMixed);
+//    }

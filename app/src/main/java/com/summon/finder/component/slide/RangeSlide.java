@@ -40,7 +40,7 @@ public class RangeSlide extends LinearLayout {
             public void onValueChange(@NonNull RangeSlider rangeSlider, float value, boolean fromUser) {
                 List<Float> values = slideView.getValues();
 
-                valueView.setText(String.format("%d %d", Math.round(values.get(0)), Math.round(values.get(1))));
+                valueView.setText(String.format("%d - %d", Math.round(values.get(0)), Math.round(values.get(1))));
             }
         });
     }
@@ -78,6 +78,14 @@ public class RangeSlide extends LinearLayout {
         slideView.setValueFrom(minField);
 
         slideView.setValues(new Float[]{Float.valueOf(valueMinField), Float.valueOf(valueMaxField)});
+    }
+
+    public void setValueSlide(List<Float> values){
+        slideView.setValues(values);
+    }
+
+    public List<Float> getValueSlide(Float... values){
+        return slideView.getValues();
     }
 
     private void initControl(Context context) {
